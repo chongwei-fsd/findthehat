@@ -21,47 +21,11 @@ let COLS;
 const PERCENTAGE = .2;
 
 class Field {
-
     constructor(field = [[]]) {
-        this._field = field;
-        this._gamePlay = false;
-        this._playerRow = 0;
-        this._playerCol = 0;
-        this._newRow = 0;
-        this._newCol = 0;
-    }
-
-    // Getters and setters for player position and game state
-    get playerRow() {
-        return this._playerRow;
-    }
-
-    set playerRow(value) {
-        this._playerRow=value
-    }
-
-    get playerCol() {
-        return this._playerCol;
-    }
-
-    set playerCol(value) {
-      this._playerCol=value
-    }
-
-    get gamePlay() {
-        return this._gamePlay;
-    }
-
-    set gamePlay(value) {
-        this._gamePlay = value;
-    }
-
-    get field() {
-        return this._field;
-    }
-
-    set field(value) {
-        this._field = value;
+        this.field = field;
+        this.gamePlay = false;
+        this.playerRow = 0;
+        this.playerCol = 0;
     }
 
     static welcomeMsg(msg) {
@@ -69,7 +33,7 @@ class Field {
     }
 
     static generateField(rows, cols, percentage) {
-        const map = [[]];
+        const map = [];
         for (let i = 0; i < rows; i++) {
             map[i] = [];
             for (let j = 0; j < cols; j++) {
@@ -80,54 +44,58 @@ class Field {
     }
 
     printField() {
-        console.table(this.field);
+        this.field.forEach(row => console.log(row.join('')));
     }
 
     updateGame(input) {
-        const userInput = String(input.toLowerCase());
-
-        // Move player based on input
-        switch (userInput) {
-            case 'w': this._newRow = this.playerRow - 1; break;
-            case 's': this._newRow = this.playerRow + 1; break;
-            case 'a': this._newCol = this.playerCol - 1; break;
-            case 'd': this._newCol = this.playerCol + 1; break;
-            default:
+        // Quit game if 'q' is pressed
+        if (input === 'q') {
+            this.quitGame();
+            return;
         }
-
+    
+        let newRow = this.playerRow;
+        let newCol = this.playerCol;
+    
+        // Move player based on input
+        switch (input) {
+            case 'w': newRow--; break;
+            case 's': newRow++; break;
+            case 'a': newCol--; break;
+            case 'd': newCol++; break;
+            default:
+                console.log(`${RED}Invalid key${RESET}`);
+                return;
+        }
+    
         // Check out-of-bounds
-        if (this._newRow < 0 || this._newCol < 0 || this._newRow >= ROWS || this._newCol >= COLS) {
+        if (newRow < 0 || newCol < 0 || newRow >= ROWS || newCol >= COLS) {
             console.log(OUT);
             this.endGame();
             return;
         }
-
+    
         // Check for carrot
-        if (this.field[this._newRow][this._newCol] === CARROT) {
+        if (this.field[newRow][newCol] === CARROT) {
             console.log(WIN);
             this.endGame();
             return;
         }
-
+    
         // Check for hole
-        if (this.field[this._newRow][this._newCol] === HOLE) {
+        if (this.field[newRow][newCol] === HOLE) {
             console.log(LOST);
             this.endGame();
             return;
         }
-
-        // Quit game
-        if (userInput === 'q') {
-            this.quitGame();
-            return;
-        }
-
+    
         // Move player on the map
         this.field[this.playerRow][this.playerCol] = GRASS;
-        this.field[this._newRow][this._newCol] = PLAYER;
-        this.playerRow = this._newRow;
-        this.playerCol = this._newCol;
+        this.field[newRow][newCol] = PLAYER;
+        this.playerRow = newRow;
+        this.playerCol = newCol;
     }
+    
 
     plantCarrot() {
         const x = Math.floor(Math.random() * ROWS);
@@ -142,29 +110,15 @@ class Field {
 
         while (this.gamePlay) {
             this.printField();
-            let flagInvalid = false;
-
             console.log(`${GREEN}w(up) | s(down) | a(left) | d(right) | q(quit)${RESET}`);
             const input = prompt('Which way: ');
-
-            switch (input.toLowerCase()) {
-                case 'w': console.log(`${GREEN}Up${RESET}`); break;
-                case 's': console.log(`${GREEN}Down${RESET}`); break;
-                case 'a': console.log(`${GREEN}Left${RESET}`); break;
-                case 'd': console.log(`${GREEN}Right${RESET}`); break;
-                case 'q': console.log(`${RED}Quit${RESET}`); break;
-                default: console.log(`${RED}Invalid key${RESET}`); flagInvalid = true;
-            }
-
-            if (!flagInvalid) {
-                this.updateGame(input);
-            }
+            this.updateGame(input.toLowerCase());
         }
     }
 
     endGame() {
         this.gamePlay = false;
-        process.exit();
+        console.log(`${GREEN}Game Over!${RESET}`);
     }
 
     quitGame() {
